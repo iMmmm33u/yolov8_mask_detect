@@ -245,6 +245,24 @@ python scripts/train.py --device 0 --epochs 100 --imgsz 640 --batch 32 --workers
 python scripts/train.py --device 0 --epochs 100 --imgsz 640 --batch 32 --workers 8 --skip-data-check
 ```
 
+## 预训练权重
+
+如果不想自行训练，可以直接使用已经训练好的权重文件。推荐将权重文件作为 GitHub Release 附件提供，不直接提交到 Git 仓库。
+
+下载权重后，将文件放到项目默认模型路径：
+
+```text
+models/mask_yolo.pt
+```
+
+本地可用以下命令检查文件是否存在：
+
+```bash
+ls -lh models/mask_yolo.pt
+```
+
+如果该文件存在，启动 GUI 后点击“开始检测”时会自动加载该模型。
+
 ## 下载服务器模型到本地
 
 训练完成后，将服务器上的最佳权重下载到本地默认模型路径。
