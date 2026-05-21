@@ -1,0 +1,14 @@
+name: mask-detect
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - pip
+  - numpy
+  - pillow
+  - pyqt
+  - pip:
+      - ultralytics>=8.0.0
+      - opencv-python>=4.8.0
+      - tqdm>=4.66.0
