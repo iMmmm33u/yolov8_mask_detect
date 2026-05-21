@@ -6,6 +6,8 @@ __pycache__/
 .DS_Store
 .env
 .ultralytics/
+doc.md
+prompt.txt
 
 runs/
 models/*.pt

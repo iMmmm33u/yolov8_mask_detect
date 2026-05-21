@@ -80,9 +80,28 @@ pip install ultralytics opencv-python Pillow numpy tqdm
 pip install ultralytics opencv-python Pillow numpy tqdm -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
-## 数据集格式
+## 数据集下载与准备
 
-训练数据采用 YOLO 格式：
+本项目使用的数据集为 Kaggle 上的 Face Mask Detection YOLO/Darknet 格式数据集：
+
+```text
+https://www.kaggle.com/datasets/parot99/face-mask-detection-yolo-darknet-format?resource=download
+```
+
+下载后可将压缩包解压到项目的 `data/` 目录，建议保留为：
+
+```text
+data/mask-dataset/
+├── images/
+│   ├── train/
+│   ├── validate/
+│   └── test/
+├── train.txt
+├── validate.txt
+└── test.txt
+```
+
+该数据集原始目录中，图片和同名 `.txt` 标注文件位于同一个 split 目录下。项目训练脚本使用标准 YOLO 目录，因此需要整理为：
 
 ```text
 datasets/mask_dataset/
@@ -94,12 +113,31 @@ datasets/mask_dataset/
 └── labels/test/
 ```
 
+可以在项目根目录执行以下命令整理数据：
+
+```bash
+mkdir -p datasets/mask_dataset/images/train datasets/mask_dataset/images/val datasets/mask_dataset/images/test
+mkdir -p datasets/mask_dataset/labels/train datasets/mask_dataset/labels/val datasets/mask_dataset/labels/test
+
+find data/mask-dataset/images/train -maxdepth 1 -type f \( -name '*.jpg' -o -name '*.jpeg' -o -name '*.png' -o -name '*.bmp' -o -name '*.webp' \) -exec cp {} datasets/mask_dataset/images/train/ \;
+find data/mask-dataset/images/validate -maxdepth 1 -type f \( -name '*.jpg' -o -name '*.jpeg' -o -name '*.png' -o -name '*.bmp' -o -name '*.webp' \) -exec cp {} datasets/mask_dataset/images/val/ \;
+find data/mask-dataset/images/test -maxdepth 1 -type f \( -name '*.jpg' -o -name '*.jpeg' -o -name '*.png' -o -name '*.bmp' -o -name '*.webp' \) -exec cp {} datasets/mask_dataset/images/test/ \;
+
+find data/mask-dataset/images/train -maxdepth 1 -type f -name '*.txt' -exec cp {} datasets/mask_dataset/labels/train/ \;
+find data/mask-dataset/images/validate -maxdepth 1 -type f -name '*.txt' -exec cp {} datasets/mask_dataset/labels/val/ \;
+find data/mask-dataset/images/test -maxdepth 1 -type f -name '*.txt' -exec cp {} datasets/mask_dataset/labels/test/ \;
+```
+
+整理完成后，训练集、验证集和测试集的图片数量应分别与标注数量一致。训练脚本会在启动时自动检查这一点。
+
 类别定义以 [datasets/mask_dataset/mask.yaml](datasets/mask_dataset/mask.yaml) 为准：
 
 ```text
 0 no_mask
 1 mask
 ```
+
+注意：该 Kaggle 数据集的 `classes.txt` 顺序是 `no-mask`、`mask`，因此本项目的 `mask.yaml` 使用 `0 no_mask`、`1 mask`。如果类别顺序写反，模型推理结果会把戴口罩和未戴口罩识别反。
 
 每张图片对应一个同名 `.txt` 标注文件，格式为：
 
