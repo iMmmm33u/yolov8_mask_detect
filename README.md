@@ -247,7 +247,7 @@ python scripts/train.py --device 0 --epochs 100 --imgsz 640 --batch 32 --workers
 
 ## 预训练权重
 
-如果不想自行训练，可以直接使用已经训练好的权重文件。推荐将权重文件作为 GitHub Release 附件提供，不直接提交到 Git 仓库。
+如果不想自行训练，可以直接使用已经训练好的权重文件。预训练权重文件可在Release页面中下载。
 
 下载权重后，将文件放到项目默认模型路径：
 
@@ -273,10 +273,10 @@ ls -lh models/mask_yolo.pt
 scp root@服务器IP:~/mask_detect/runs/detect/mask_train/weights/best.pt /Users/wcx/mask_detect/models/mask_yolo.pt
 ```
 
-自定义 SSH 端口，例如 AutoDL/SeetaCloud 给出的端口为 `36800`：
+自定义 SSH 端口，例如：
 
 ```bash
-scp -P 36800 root@connect.westd.seetacloud.com:~/mask_detect/runs/detect/mask_train/weights/best.pt /Users/wcx/mask_detect/models/mask_yolo.pt
+scp -P 8888 root@123.123.123.123.com:~/mask_detect/runs/detect/mask_train/weights/best.pt /Users/wcx/mask_detect/models/mask_yolo.pt
 ```
 
 注意：`ssh` 使用小写 `-p`，`scp` 指定端口使用大写 `-P`。
