@@ -1,7 +1,6 @@
 from pathlib import Path
 from typing import Optional
 
-import cv2
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
     QFileDialog,
@@ -17,7 +16,7 @@ from PyQt5.QtWidgets import (
 
 from config import APP_TITLE, SUPPORTED_IMAGE_EXTENSIONS
 from detector import DetectorError, MaskDetector
-from utils import cv_image_to_pixmap, format_detection_results, is_supported_image
+from utils import cv_image_to_pixmap, format_detection_results, is_supported_image, load_image_bgr
 
 
 class MainWindow(QMainWindow):
@@ -107,6 +106,7 @@ class MainWindow(QMainWindow):
             QTextEdit {
                 background: #ffffff;
                 border: 1px solid #d1d5db;
+                color: #111827;
                 font-size: 14px;
                 padding: 8px;
             }
@@ -114,23 +114,28 @@ class MainWindow(QMainWindow):
         )
 
     def select_image(self) -> None:
-        file_filter = "图片文件 (*.jpg *.jpeg *.png *.bmp *.webp)"
+        file_filter = "图片文件 (*.jpg *.jpeg *.png *.bmp *.webp *.heic *.heif)"
         image_path, _ = QFileDialog.getOpenFileName(self, "选择图片", "", file_filter)
         if not image_path:
             return
 
         if not is_supported_image(image_path, SUPPORTED_IMAGE_EXTENSIONS):
-            QMessageBox.warning(self, "文件格式错误", "请选择 jpg、jpeg、png、bmp 或 webp 图片。")
+            QMessageBox.warning(self, "文件格式错误", "请选择 jpg、jpeg、png、bmp、webp、heic 或 heif 图片。")
             return
 
         self.current_image_path = Path(image_path)
-        image = cv2.imread(str(self.current_image_path))
+        try:
+            image = load_image_bgr(self.current_image_path)
+        except RuntimeError as exc:
+            QMessageBox.warning(self, "图片读取失败", str(exc))
+            return
+
         if image is None:
             QMessageBox.warning(self, "图片读取失败", "无法读取所选图片，请更换图片。")
             return
 
         self._show_image(image)
-        self.result_text.setText(f"已选择图片：{self.current_image_path}")
+        self.result_text.setPlainText(f"已选择图片：{self.current_image_path}")
 
     def detect_image(self) -> None:
         if self.current_image_path is None:
@@ -144,7 +149,7 @@ class MainWindow(QMainWindow):
             return
 
         self._show_image(result_image)
-        self.result_text.setText(format_detection_results(detections))
+        self.result_text.setPlainText(format_detection_results(detections))
 
     def clear_result(self) -> None:
         self.current_image_path = None

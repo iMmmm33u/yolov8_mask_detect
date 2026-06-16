@@ -4,6 +4,7 @@ from typing import List, Tuple, Union
 import cv2
 
 from config import CLASS_COLORS, DEFAULT_CONFIDENCE, MODEL_PATH
+from utils import load_image_bgr
 
 
 class DetectorError(RuntimeError):
@@ -34,18 +35,24 @@ class MaskDetector:
         self.load_model()
 
         image_path = Path(image_path)
-        image = cv2.imread(str(image_path))
+        try:
+            image = load_image_bgr(image_path)
+        except RuntimeError as exc:
+            raise DetectorError(str(exc)) from exc
+
         if image is None:
             raise DetectorError(f"图片读取失败：{image_path}")
 
-        try:
-            predictions = self.model.predict(str(image_path), conf=self.confidence, verbose=False)
-        except Exception as exc:
-            raise DetectorError(f"模型推理失败：{exc}") from exc
-
+        predictions = self._predict(image)
         detections = self._parse_predictions(predictions)
         rendered_image = self._draw_detections(image, detections)
         return rendered_image, detections
+
+    def _predict(self, source):
+        try:
+            return self.model.predict(source, conf=self.confidence, verbose=False)
+        except Exception as exc:
+            raise DetectorError(f"模型推理失败：{exc}") from exc
 
     def _parse_predictions(self, predictions) -> List[dict]:
         detections = []
@@ -73,6 +80,12 @@ class MaskDetector:
         return detections
 
     def _draw_detections(self, image, detections: List[dict]):
+        height, width = image.shape[:2]
+        image_scale = max(width, height) / 900
+        box_thickness = max(2, int(round(image_scale * 2)))
+        font_scale = max(0.7, image_scale * 0.7)
+        text_thickness = max(2, int(round(image_scale * 2)))
+
         for item in detections:
             x1, y1, x2, y2 = item["bbox"]
             class_name = item["class_name"]
@@ -80,8 +93,13 @@ class MaskDetector:
             color = CLASS_COLORS.get(class_name, (40, 120, 240))
             label = f"{class_name} {confidence:.2f}"
 
-            cv2.rectangle(image, (x1, y1), (x2, y2), color, 2)
-            label_size, baseline = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 2)
+            cv2.rectangle(image, (x1, y1), (x2, y2), color, box_thickness)
+            label_size, baseline = cv2.getTextSize(
+                label,
+                cv2.FONT_HERSHEY_SIMPLEX,
+                font_scale,
+                text_thickness,
+            )
             label_y1 = max(y1 - label_size[1] - baseline, 0)
             cv2.rectangle(
                 image,
@@ -95,9 +113,9 @@ class MaskDetector:
                 label,
                 (x1, label_y1 + label_size[1]),
                 cv2.FONT_HERSHEY_SIMPLEX,
-                0.6,
+                font_scale,
                 (255, 255, 255),
-                2,
+                text_thickness,
             )
 
         return image

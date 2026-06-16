@@ -71,13 +71,13 @@ pip install -r requirements.txt
 conda create -n mask-train python=3.10 -y
 conda activate mask-train
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
-pip install ultralytics opencv-python Pillow numpy tqdm
+pip install ultralytics opencv-python Pillow pillow-heif numpy tqdm
 ```
 
 国内服务器如果 PyPI 较慢，可以给第二条 `pip` 命令加镜像源：
 
 ```bash
-pip install ultralytics opencv-python Pillow numpy tqdm -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip install ultralytics opencv-python Pillow pillow-heif numpy tqdm -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
 ## 数据集下载与准备
@@ -299,6 +299,20 @@ python src/main.py
 
 如果 `models/mask_yolo.pt` 不存在，程序仍可启动，但点击检测时会提示模型文件缺失。
 
+GUI 使用流程：点击“选择图片”选择本地图片，再点击“开始检测”。
+
+支持的图片格式：
+
+```text
+jpg, jpeg, png, bmp, webp, heic, heif
+```
+
+其中 HEIC/HEIF 读取依赖 `pillow-heif`。如果选择 HEIC 图片时报缺少依赖，请执行：
+
+```bash
+pip install pillow-heif
+```
+
 macOS 上可能出现类似日志：
 
 ```text
@@ -338,7 +352,6 @@ DEFAULT_CONFIDENCE = 0.25
 ## 后续优化方向
 
 1. 增加检测结果图片保存功能。
-2. 增加摄像头实时检测功能。
-3. 增加 GUI 置信度滑块。
-4. 增加检测结果导出功能。
-5. 训练更高精度模型，例如 `yolov8s.pt`。
+2. 增加 GUI 置信度滑块。
+3. 增加检测结果导出功能。
+4. 训练更高精度模型，例如 `yolov8s.pt`。

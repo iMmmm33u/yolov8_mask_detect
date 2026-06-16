@@ -2,11 +2,35 @@ from pathlib import Path
 from typing import Iterable, List, Union
 
 import cv2
+import numpy as np
 from PyQt5.QtGui import QImage, QPixmap
 
 
 def is_supported_image(path: Union[str, Path], extensions: Iterable[str]) -> bool:
     return Path(path).suffix.lower() in extensions
+
+
+def load_image_bgr(path: Union[str, Path]):
+    image_path = Path(path)
+    if image_path.suffix.lower() in {".heic", ".heif"}:
+        return load_heic_image_bgr(image_path)
+
+    return cv2.imread(str(image_path))
+
+
+def load_heic_image_bgr(path: Path):
+    try:
+        from PIL import Image
+        from pillow_heif import register_heif_opener
+    except ImportError as exc:
+        raise RuntimeError("读取 HEIC/HEIF 图片需要安装 pillow-heif，请执行 pip install pillow-heif。") from exc
+
+    register_heif_opener()
+    with Image.open(path) as image:
+        image_rgb = image.convert("RGB")
+        image_array = np.array(image_rgb)
+
+    return cv2.cvtColor(image_array, cv2.COLOR_RGB2BGR)
 
 
 def cv_image_to_pixmap(image_bgr, max_width: int, max_height: int) -> QPixmap:
